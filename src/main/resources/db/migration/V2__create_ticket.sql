@@ -1,0 +1,16 @@
+CREATE TABLE ticket (
+    id BIGINT NOT NULL COMMENT '工单ID',
+    title VARCHAR(200) NOT NULL COMMENT '工单标题',
+    description TEXT DEFAULT NULL COMMENT '工单描述',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态：PENDING/PROCESSING/RESOLVED/CLOSED',
+    priority VARCHAR(10) NOT NULL DEFAULT 'MEDIUM' COMMENT '优先级：LOW/MEDIUM/HIGH/URGENT',
+    creator_id BIGINT NOT NULL COMMENT '创建人ID',
+    assignee_id BIGINT DEFAULT NULL COMMENT '处理人ID',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除，1-已删除',
+    PRIMARY KEY (id),
+    KEY idx_creator_id (creator_id),
+    KEY idx_assignee_id (assignee_id),
+    KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工单表';

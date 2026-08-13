@@ -1,0 +1,1 @@
+ALTER TABLE ticket ADD COLUMN sla_deadline DATETIME DEFAULT NULL COMMENT 'SLA到期时间' AFTER assignee_id;
