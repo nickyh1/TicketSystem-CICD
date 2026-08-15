@@ -1,40 +1,39 @@
-# 第一阶段：编译和打包
-FROM eclipse-temurin:21-jdk AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 
-WORKDIR /workspace
+WORKDIR /app
 
-# 先复制 Maven Wrapper 和 pom.xml
-# 只要 pom.xml 不变，这一层下载的依赖就可以复用缓存
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+COPY pom.xml .
+COPY src ./src
 
-RUN chmod +x mvnw \
-    && ./mvnw -B -ntp dependency:go-offline
-
-# 再复制源代码
-COPY src/ src/
-
-# GitHub Actions 会在构建镜像前执行完整测试
-# 这里不重复执行测试，只负责生成 JAR
-RUN ./mvnw -B -ntp clean package -DskipTests
+# 测试已经由 GitHub Actions 的 CI 阶段执行，
+# 镜像阶段只负责生成可运行的 JAR，避免重复跑测试。
+RUN mvn -B -ntp clean package -DskipTests
 
 
-# 第二阶段：运行程序
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Compose 的健康检查会使用 curl
+# curl 用于 Compose 健康检查。
+# 同时创建无登录权限的普通系统用户。
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system appgroup \
-    && useradd --system --gid appgroup appuser
+    && groupadd --system ticketsystem \
+    && useradd --system \
+        --gid ticketsystem \
+        --home-dir /app \
+        --shell /usr/sbin/nologin \
+        ticketsystem \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build --chown=appuser:appgroup /workspace/target/app.jar /app/app.jar
+# JAR 文件直接归普通用户所有。
+COPY --from=build \
+    --chown=ticketsystem:ticketsystem \
+    /app/target/*.jar \
+    /app/app.jar
 
-# 生产容器不使用 root 运行
-USER appuser
+# 从这里开始，后面的程序不再以 root 身份运行。
+USER ticketsystem:ticketsystem
 
 EXPOSE 8080
 

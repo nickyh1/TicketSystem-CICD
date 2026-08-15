@@ -67,7 +67,7 @@ services:
       - backend
 
   ticketsystem-app:
-    image: "ghcr.io/${GHCR_OWNER:?GHCR_OWNER is required}/ticketsystem:${IMAGE_TAG:?IMAGE_TAG is required}"
+    image: "ghcr.io/${GHCR_OWNER:?GHCR_OWNER is required}/ticketsystem-cicd:${IMAGE_TAG:?IMAGE_TAG is required}"
     restart: unless-stopped
     ports:
       - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:8080"

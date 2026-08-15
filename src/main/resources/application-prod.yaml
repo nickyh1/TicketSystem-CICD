@@ -1,18 +1,36 @@
+# 仅在 prod Profile 激活时加载
+
+# 应用位于 Nginx 反向代理后面，识别转发后的协议和客户端地址
+server:
+  forward-headers-strategy: framework
+
+# 生产环境不开放 Swagger 文档
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
 
+# SQL 日志接入 SLF4J，不再直接向标准输出打印 SQL 和参数
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
+# 生产环境使用正常信息级别，Mapper 不输出 SQL 明细
 logging:
   level:
+    root: INFO
     com.example.ticketsystem: INFO
+    com.example.ticketsystem.mapper: WARN
+    org.mybatis: WARN
+    com.baomidou.mybatisplus: WARN
 
+# 对应用本身只开放健康检查
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health
   endpoint:
     health:
       show-details: never
